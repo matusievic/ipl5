@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>by.matusievic</groupId>
-    <artifactId>lab-4</artifactId>
+    <artifactId>lab-5</artifactId>
     <version>1.0</version>
     <build>
         <plugins>

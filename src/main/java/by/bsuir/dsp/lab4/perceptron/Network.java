@@ -6,11 +6,10 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static by.bsuir.dsp.lab4.array.ArrayService.toBipolar;
-import static java.lang.Math.exp;
 
 public class Network {
     private int n;
-    private int m;
+    private int h;
 
     private double[] entrance;
     private double[] hidden;
@@ -20,52 +19,67 @@ public class Network {
     private double[] sigma;
     private double[][] ho;
 
-    public Network(int n, int m) {
+    public Network(int n, int h) {
         this.n = n;
-        this.m = m;
+        this.h = h;
 
         this.entrance = new double[n];
-        this.hidden = new double[m];
-        this.output = new double[m];
+        this.hidden = new double[h];
+        this.output = new double[h];
 
-        this.center = new double[m][n];
-        this.sigma = new double[m];
+        this.center = new double[h][n];
+        this.sigma = new double[h];
 
-        this.ho = new double[m][m];
+        this.ho = new double[h][h];
 
         init();
     }
 
     private void init() {
         Random r = new Random();
-        for (int j = 0; j < m; j++) {
-            for (int k = 0; k < m; k++) {
+        for (int j = 0; j < h; j++) {
+            for (int k = 0; k < h; k++) {
                 ho[j][k] = r.nextDouble() * (r.nextBoolean() ? 1 : -1);
             }
         }
     }
 
-    public void learn(int[][] bitmap, double[] result, double a) {
+    public int learn(int[][] bitmap, double[] result, double a, double maxError) {
         int[] input = toBipolar(bitmap);
         for (int i = 0; i < result.length; i++) {
             if (result[i] == 1.0) {
                 double[] center = this.center[i];
                 for (int j = 0; j < center.length; j++) {
-                    center[j] = (center[j] + input[j]) / 2;
+                    center[j] = input[j];
                 }
-                final int ind = i;
-                sigma[i] = ArrayService.minDistance(this.center[i], Arrays.stream(this.center)
-                                                                          .filter(arr -> !Arrays.equals(arr, this.center[ind]))
-                                                                          .toArray(double[][]::new)) / 2;
             }
         }
 
-        for (int j = 0; j < m; j++) {
-            for (int k = 0; k < m; k++) {
-                double dk = result[k] - output[k];
-                ho[j][k] += a * dk * hidden[j];
-            }
+        for (int i = 0; i < h; i++) {
+            final int ind = i;
+            double[][] others = Arrays.stream(this.center)
+                                      .filter(arr -> !Arrays.equals(arr, this.center[ind]))
+                                      .toArray(double[][]::new);
+            sigma[i] = ArrayService.minDistance(this.center[i], others) / 2;
         }
+
+        int iterCount = 0;
+        double error;
+        do {
+            error = 0;
+            this.supply(input);
+            for (int k = 0; k < h; k++) {
+                double dk = result[k] - output[k];
+                if (Math.abs(dk) > maxError) {
+                    error = Math.abs(dk);
+                }
+                for (int j = 0; j < h; j++) {
+                    ho[j][k] += a * dk * hidden[j];
+                }
+            }
+            iterCount++;
+        } while (error > maxError);
+        return iterCount;
     }
 
     private void supply(int[] input) {
@@ -76,29 +90,24 @@ public class Network {
     }
 
     private void calculate() {
-        for (int i = 0; i < m; i++) {
-            double distance = ArrayService.distance(entrance, center[i]);
-            hidden[i] = Math.exp(-distance / sigma[i]);
+        for (int j = 0; j < h; j++) {
+            double distance = ArrayService.distance(entrance, center[j]);
+            hidden[j] = Math.exp(-distance / Math.pow(sigma[j], 2));
         }
 
-        for (int k = 0; k < m; k++) {
+        for (int k = 0; k < h; k++) {
             output[k] = 0;
-            for (int j = 0; j < m; j++) {
-                output[k] += ho[j][k] * hidden[k];
+            for (int j = 0; j < h; j++) {
+                output[k] += ho[j][k] * hidden[j];
             }
-            output[k] = activation(output[k]);
         }
-    }
-
-    private double activation(double value) {
-        return (1.0 / (1.0 + exp(-value)));
     }
 
     public int recognize(int[][] bitmap) {
         int[] input = toBipolar(bitmap);
-        supply(input);
+        this.supply(input);
         int max = 0;
-        for (int i = 1; i < m; i++) {
+        for (int i = 1; i < h; i++) {
             if (output[i] > output[max]) {
                 max = i;
             }
@@ -106,7 +115,15 @@ public class Network {
         return max;
     }
 
+    public double[] getHidden() {
+        return hidden;
+    }
+
     public double[] getOutput() {
         return output;
+    }
+
+    public double[][] getHO() {
+        return ho;
     }
 }

@@ -20,16 +20,15 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public class App extends Application {
     // learning params
     @FXML
-    private TextField hiddenLayerSizeField;
-    @FXML
     private TextField aField;
-    @FXML
-    private TextField bField;
     @FXML
     private TextField errorField;
     @FXML
@@ -103,14 +102,32 @@ public class App extends Application {
         }
 
         learnButton.setOnAction(e -> {
+            int iterCount = 0;
             this.network = new Network(36, 5);
-            for (int j = 0; j < 5; j++) {
-                for (int i = 0; i < 5; i++) {
-                    double[] r = {0, 0, 0, 0, 0};
-                    r[i] = 1;
-                    this.network.learn(patterns[i], r, Double.parseDouble(aField.getText()));
+            double a = Double.parseDouble(aField.getText());
+            double error = Double.parseDouble(errorField.getText());
+            double[][] right = {
+                    {1.0, 0.0, 0.0, 0.0, 0.0},
+                    {0.0, 1.0, 0.0, 0.0, 0.0},
+                    {0.0, 0.0, 1.0, 0.0, 0.0},
+                    {0.0, 0.0, 0.0, 1.0, 0.0},
+                    {0.0, 0.0, 0.0, 0.0, 1.0}
+            };
+
+            Random r = new Random();
+            List<Integer> used = new ArrayList<>(5);
+            for (int i = 0; i < 15625; i++) {
+                int ind;
+                do {
+                    ind = r.nextInt(5);
+                } while (used.contains(ind));
+                used.add(ind);
+                iterCount += this.network.learn(patterns[ind], right[ind], a, error);
+                if (i % 4 == 0) {
+                    used.clear();
                 }
             }
+            iterationsLabel.setText(String.valueOf(iterCount));
         });
 
 
@@ -129,11 +146,11 @@ public class App extends Application {
             int result = this.network.recognize(ImageService.imageToMap(input));
             resultImage.setImage(SwingFXUtils.toFXImage(ImageService.maximize(ImageService.mapToImage(patterns[result]), 20), null));
             double[] output = network.getOutput();
-            firstClassPercentLabel.setText(String.format("%.2f", (output[0] * 100)));
-            secondClassPercentLabel.setText(String.format("%.2f", (output[1] * 100)));
-            thirdClassPercentLabel.setText(String.format("%.2f", (output[2] * 100)));
-            fourthClassPercentLabel.setText(String.format("%.2f", (output[3] * 100)));
-            fifthClassPercentLabel.setText(String.format("%.2f", (output[4] * 100)));
+            firstClassPercentLabel.setText(String.format("%.2f", (output[0])));
+            secondClassPercentLabel.setText(String.format("%.2f", (output[1])));
+            thirdClassPercentLabel.setText(String.format("%.2f", (output[2])));
+            fourthClassPercentLabel.setText(String.format("%.2f", (output[3])));
+            fifthClassPercentLabel.setText(String.format("%.2f", (output[4])));
         });
     }
 }

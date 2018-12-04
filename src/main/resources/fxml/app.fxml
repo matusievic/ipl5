@@ -8,15 +8,11 @@
 <?import javafx.scene.layout.GridPane?>
 <GridPane xmlns="http://javafx.com/javafx/8.0.151" xmlns:fx="http://javafx.com/fxml/1">
     <GridPane GridPane.rowIndex="0" GridPane.columnIndex="0">
-        <Label text="Hidden layer size" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="hiddenLayerSizeField" text="18" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
         <Label text="a" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <TextField fx:id="aField" GridPane.rowIndex="1" text="0.2" GridPane.columnIndex="1"/>
-        <Label text="b" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <TextField fx:id="bField" text="0.2" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
         <Label text="Error" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
         <TextField fx:id="errorField" text="0.008" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <Button fx:id="learnButton" text="Learn" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <Button fx:id="learnButton" text="Teach" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
         <Label fx:id="iterationsLabel" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
     </GridPane>
     <GridPane GridPane.rowIndex="0" GridPane.columnIndex="1">
